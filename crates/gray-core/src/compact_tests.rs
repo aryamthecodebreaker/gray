@@ -72,10 +72,7 @@ async fn budgeted_compact_keeps_recent_tail() {
         "retained order: {}",
         msgs[1].text_content().chars().take(20).collect::<String>()
     );
-    assert!(
-        msgs[2].text_content().contains("msg6"),
-        "newest message closes history"
-    );
+    assert!(msgs[2].text_content().contains("msg6"), "newest closes history");
 }
 
 #[tokio::test]

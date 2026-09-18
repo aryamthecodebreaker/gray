@@ -909,12 +909,11 @@ async fn context_overflow_compacts_once_then_continues() {
         "pi order: [summary, retained..., reply], got {:?}",
         msgs[0].text_content().chars().take(60).collect::<String>()
     );
-    assert!(
-        msgs.iter().skip(1).all(|m| !m
-            .text_content()
-            .contains("compacted into the following summary")),
-        "exactly one summary"
-    );
+    let summaries = msgs
+        .iter()
+        .filter(|m| m.text_content().contains("compacted into the following summary"))
+        .count();
+    assert_eq!(summaries, 1, "exactly one summary");
     let last = msgs.len() - 1;
     assert_eq!(msgs[last].text_content(), "continued", "reply follows the tail");
     assert_eq!(
@@ -1251,8 +1250,16 @@ async fn provider_usage_triggers_pre_turn_compaction() {
     // when the provider reported a nearly full context.
     let provider = FakeProvider::new(vec![
         vec![
-            StreamEvent::tool_call_delta(0, Some("c1".into()), Some(TOOL_NAME.into()), r#"{"q":"x"}"#),
-            StreamEvent::message_complete(Some(StopReason::ToolUse), Some(Usage::new(190_000, 10))),
+            StreamEvent::tool_call_delta(
+                0,
+                Some("c1".into()),
+                Some(TOOL_NAME.into()),
+                r#"{"q":"x"}"#,
+            ),
+            StreamEvent::message_complete(
+                Some(StopReason::ToolUse),
+                Some(Usage::new(190_000, 10)),
+            ),
         ],
         vec![
             StreamEvent::text_delta("S"),

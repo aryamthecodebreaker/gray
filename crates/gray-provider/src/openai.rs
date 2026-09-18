@@ -350,17 +350,20 @@ fn add_cache_control_to_text_content(
         ]));
         return true;
     }
-    if let Some(Value::Array(parts)) = &mut m.content
-        && let Some(part) = parts
-            .iter_mut()
-            .rev()
-            .find(|p| p.get("type").and_then(Value::as_str) == Some("text"))
-        && let Some(part) = part.as_object_mut()
-    {
-        part.insert("cache_control".to_string(), cache_control.clone());
-        return true;
+    let Some(Value::Array(parts)) = &mut m.content else {
+        return false;
+    };
+    let text_part = parts
+        .iter_mut()
+        .rev()
+        .find(|p| p.get("type").and_then(Value::as_str) == Some("text"));
+    match text_part.and_then(Value::as_object_mut) {
+        Some(part) => {
+            part.insert("cache_control".to_string(), cache_control.clone());
+            true
+        }
+        None => false,
     }
-    false
 }
 
 fn image_data_url(media_type: &str, data: &str) -> String {
@@ -1420,10 +1423,9 @@ async fn send_json_once(
             .post(url.clone())
             .header("Authorization", format!("Bearer {api_key}"))
     };
-    let mut base = base;
-    for (name, value) in session_affinity_headers(url, session_id) {
-        base = base.header(name, value);
-    }
+    let base = session_affinity_headers(url, session_id)
+        .into_iter()
+        .fold(base, |b, (name, value)| b.header(name, value));
     let req = base.header("Content-Type", "application/json").json(body);
     let res_result = req.send().await;
     log::debug!(target: "gray_provider", "request sent to {url} (attempt {attempt})");

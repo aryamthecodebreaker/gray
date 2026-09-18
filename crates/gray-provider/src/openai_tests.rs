@@ -1520,8 +1520,8 @@ fn anthropic_cache_control_rides_content_parts() {
     // pi `applyAnthropicCacheControl`: OpenRouter/Anthropic read
     // `cache_control` on content blocks only, so a message-level marker
     // cached nothing. Breakpoints: system, last tool, last message.
-    let body = map_chat_request(cached_turn_req(), "anthropic/claude-sonnet-4.5", None)
-        .expect("maps");
+    let model = "anthropic/claude-sonnet-4.5";
+    let body = map_chat_request(cached_turn_req(), model, None).expect("maps");
     let v = serde_json::to_value(&body).expect("serializes");
     let msgs = v["messages"].as_array().expect("messages");
     assert!(
@@ -1567,7 +1567,8 @@ fn anthropic_cache_control_marks_text_part_of_image_turn() {
 
 #[test]
 fn non_anthropic_models_carry_no_cache_control() {
-    let body = map_chat_request(cached_turn_req(), "openai/gpt-5", None).expect("maps");
+    let model = "openai/gpt-5";
+    let body = map_chat_request(cached_turn_req(), model, None).expect("maps");
     let v = serde_json::to_value(&body).expect("serializes");
     assert!(!v.to_string().contains("cache_control"), "{v}");
     assert_eq!(v["messages"][0]["content"], "sys", "plain string content kept");
