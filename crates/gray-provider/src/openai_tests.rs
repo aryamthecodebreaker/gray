@@ -1511,7 +1511,11 @@ fn cached_turn_req() -> gray_core::message::ChatRequest {
                 content: vec![ContentBlock::tool_result("c1", "out", false)],
             },
         ],
-        tools: vec![ToolDef::new("bash", "run", serde_json::json!({"type": "object"}))],
+        tools: vec![ToolDef::new(
+            "bash",
+            "run",
+            serde_json::json!({"type": "object"}),
+        )],
     }
 }
 
@@ -1562,7 +1566,10 @@ fn anthropic_cache_control_marks_text_part_of_image_turn() {
     let parts = v["messages"][0]["content"].as_array().expect("parts");
     assert_eq!(parts[0]["type"], "text");
     assert_eq!(parts[0]["cache_control"]["type"], "ephemeral");
-    assert!(parts[1].get("cache_control").is_none(), "image part untouched: {v}");
+    assert!(
+        parts[1].get("cache_control").is_none(),
+        "image part untouched: {v}"
+    );
 }
 
 #[test]
@@ -1571,7 +1578,10 @@ fn non_anthropic_models_carry_no_cache_control() {
     let body = map_chat_request(cached_turn_req(), model, None).expect("maps");
     let v = serde_json::to_value(&body).expect("serializes");
     assert!(!v.to_string().contains("cache_control"), "{v}");
-    assert_eq!(v["messages"][0]["content"], "sys", "plain string content kept");
+    assert_eq!(
+        v["messages"][0]["content"], "sys",
+        "plain string content kept"
+    );
 }
 
 #[test]

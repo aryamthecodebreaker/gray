@@ -72,7 +72,10 @@ async fn budgeted_compact_keeps_recent_tail() {
         "retained order: {}",
         msgs[1].text_content().chars().take(20).collect::<String>()
     );
-    assert!(msgs[2].text_content().contains("msg6"), "newest closes history");
+    assert!(
+        msgs[2].text_content().contains("msg6"),
+        "newest closes history"
+    );
 }
 
 #[tokio::test]
@@ -93,7 +96,10 @@ async fn pipeline_summary_first_then_retained() {
         "summary leads"
     );
     assert!(msgs[1].text_content().contains("msg3"), "retained oldest");
-    assert!(msgs[2].text_content().contains("msg4"), "retained newest last");
+    assert!(
+        msgs[2].text_content().contains("msg4"),
+        "retained newest last"
+    );
     assert!(
         msgs.iter().all(|m| !m
             .text_content()

@@ -911,11 +911,18 @@ async fn context_overflow_compacts_once_then_continues() {
     );
     let summaries = msgs
         .iter()
-        .filter(|m| m.text_content().contains("compacted into the following summary"))
+        .filter(|m| {
+            m.text_content()
+                .contains("compacted into the following summary")
+        })
         .count();
     assert_eq!(summaries, 1, "exactly one summary");
     let last = msgs.len() - 1;
-    assert_eq!(msgs[last].text_content(), "continued", "reply follows the tail");
+    assert_eq!(
+        msgs[last].text_content(),
+        "continued",
+        "reply follows the tail"
+    );
     assert_eq!(
         msgs[last - 1].text_content(),
         "go",
@@ -963,7 +970,7 @@ async fn tool_observations_survive_without_context_pressure() {
     assert_eq!(observed.len(), 7, "one result per round");
     assert!(
         observed.iter().all(|c| c.starts_with("payload-keepme")),
-        "no observation may be elided without window pressure: {observed:?}"
+        "tool results are never rewritten: {observed:?}"
     );
 }
 
@@ -1238,9 +1245,17 @@ fn context_estimate_anchors_on_provider_usage() {
     agent.messages.push(Message::user("x".repeat(4_000)));
     assert_eq!(agent.estimate_tokens(), 52_000, "trailing bytes/4 on top");
     agent.record_context_usage(&Usage::default());
-    assert_eq!(agent.estimate_tokens(), 52_000, "a round without usage keeps the anchor");
+    assert_eq!(
+        agent.estimate_tokens(),
+        52_000,
+        "a round without usage keeps the anchor"
+    );
     agent.set_messages(vec![Message::user("x".repeat(400))]);
-    assert_eq!(agent.estimate_tokens(), 100, "a rewrite drops the stale anchor");
+    assert_eq!(
+        agent.estimate_tokens(),
+        100,
+        "a rewrite drops the stale anchor"
+    );
 }
 
 #[tokio::test]
@@ -1256,10 +1271,7 @@ async fn provider_usage_triggers_pre_turn_compaction() {
                 Some(TOOL_NAME.into()),
                 r#"{"q":"x"}"#,
             ),
-            StreamEvent::message_complete(
-                Some(StopReason::ToolUse),
-                Some(Usage::new(190_000, 10)),
-            ),
+            StreamEvent::message_complete(Some(StopReason::ToolUse), Some(Usage::new(190_000, 10))),
         ],
         vec![
             StreamEvent::text_delta("S"),
@@ -1291,7 +1303,10 @@ async fn provider_usage_triggers_pre_turn_compaction() {
             .contains("compacted into the following summary"),
         "190k reported of 200k must compact before the next request"
     );
-    assert_eq!(msgs.last().map(Message::text_content).as_deref(), Some("done"));
+    assert_eq!(
+        msgs.last().map(Message::text_content).as_deref(),
+        Some("done")
+    );
 }
 
 /// Stub `prompt/context` hook: returns fixed text like a sidecar's

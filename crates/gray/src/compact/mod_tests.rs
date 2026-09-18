@@ -191,7 +191,7 @@ async fn auto_compact_triggers_on_threshold() {
     };
     let executor = NoopExecutor;
     crate::setup::set_user_keep_recent_tokens(Some(0));
-    // Large enough that the summary pair strictly shrinks history (the
+    // Large enough that the summary strictly shrinks history (the
     // enforced shrink invariant refuses toy histories).
     let mut agent = Agent::new(Box::new(provider), Arc::new(executor)).with_messages(vec![
         Message::user("hello ".repeat(500)),
@@ -205,8 +205,8 @@ async fn auto_compact_triggers_on_threshold() {
     assert!(compacted, "should have compacted");
     assert_eq!(
         agent.messages().len(),
-        2,
-        "should be 2 messages after compact"
+        1,
+        "keep=0 leaves only the summary"
     );
     assert!(
         agent.messages()[0]
@@ -355,7 +355,10 @@ async fn compact_retains_newest_and_boundary_truncates_oldest() {
         msgs[1].text_content().chars().take(20).collect::<String>()
     );
     assert!(msgs[2].text_content().contains("m3"), "retained oldest");
-    assert!(msgs[3].text_content().contains("m4"), "retained newest closes");
+    assert!(
+        msgs[3].text_content().contains("m4"),
+        "retained newest closes"
+    );
 }
 
 #[tokio::test]
@@ -573,7 +576,7 @@ mod switch_tests {
     }
 
     fn agent() -> Agent {
-        // Large enough that the summary pair strictly shrinks history
+        // Large enough that the summary strictly shrinks history
         // (the enforced shrink invariant refuses toy histories).
         Agent::new(Box::new(FakeProvider), Arc::new(NoopExecutor)).with_messages(vec![
             Message::user("hello ".repeat(500)),

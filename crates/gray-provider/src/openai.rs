@@ -336,10 +336,7 @@ fn apply_anthropic_cache_control(
 
 /// Marks the last text part of `m`, promoting plain string content to a
 /// one-part text array first. `false` when there is no text to mark.
-fn add_cache_control_to_text_content(
-    m: &mut OpenAiMessageRequest,
-    cache_control: &Value,
-) -> bool {
+fn add_cache_control_to_text_content(m: &mut OpenAiMessageRequest, cache_control: &Value) -> bool {
     if let Some(Value::String(text)) = &mut m.content {
         if text.is_empty() {
             return false;
