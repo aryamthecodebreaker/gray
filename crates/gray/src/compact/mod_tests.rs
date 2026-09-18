@@ -203,11 +203,7 @@ async fn auto_compact_triggers_on_threshold() {
         .expect("compact should succeed");
     crate::setup::set_user_keep_recent_tokens(None);
     assert!(compacted, "should have compacted");
-    assert_eq!(
-        agent.messages().len(),
-        1,
-        "keep=0 leaves only the summary"
-    );
+    assert_eq!(agent.messages().len(), 1, "keep=0 leaves only the summary");
     assert!(
         agent.messages()[0]
             .text_content()
